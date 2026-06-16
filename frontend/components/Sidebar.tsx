@@ -11,6 +11,7 @@ import {
   Activity,
   ClipboardList,
   MessageSquare,
+  Lightbulb,
   Settings,
   Info,
   LogOut,
@@ -25,6 +26,7 @@ interface SidebarItem {
 
 const PRIMARY_NAV: SidebarItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Ask AI", href: "/ask-ai", icon: Lightbulb },
   { name: "Districts", href: "/districts", icon: Map },
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Funds", href: "/funds", icon: Coins },
