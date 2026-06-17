@@ -1,0 +1,28 @@
+# FastAPI & server
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+python-multipart==0.0.20
+
+# Database
+sqlalchemy[asyncio]==2.0.41
+asyncpg==0.30.0
+alembic==1.15.2
+
+# Redis & Celery
+redis==5.3.0
+celery[redis]==5.5.2
+
+# Validation & settings
+pydantic==2.11.3
+pydantic-settings==2.9.1
+
+# HTTP client (for future pull-based ingestion)
+httpx==0.28.1
+
+# Testing
+pytest==8.4.1
+pytest-asyncio==1.0.0
+httpx==0.28.1
+
+# Utilities
+python-dateutil==2.9.0
