@@ -14,10 +14,10 @@ interface Communication {
 }
 
 const COMMUNICATIONS: Communication[] = [
-  { id: "COM-01", sender: "Chief Secretary Office", role: "State HQ", type: "Directive", subject: "Immediate compliance reporting on delayed road bypasses in DL-40", timestamp: "2026-06-16 14:02", status: "UNREAD" },
-  { id: "COM-02", sender: "District Magistrate", role: "Pune West", type: "Inquiry", subject: "Request for supplementary funds allocation for water pipeline grids", timestamp: "2026-06-16 11:30", status: "READ" },
-  { id: "COM-03", sender: "Disaster Management Cell", role: "State Control Room", type: "Emergency", subject: "Flood warning bulletin issued for Northern border valleys", timestamp: "2026-06-16 09:12", status: "RESPONDED" },
-  { id: "COM-04", sender: "Dept of Digital Gov", role: "Technical Core", type: "Inquiry", subject: "API sync exception report on citizen services portal logins", timestamp: "2026-06-16 08:45", status: "READ" },
+  { id: "COM-01", sender: "Chief Secretary Office", role: "Delhi Secretariat", type: "Directive", subject: "Immediate compliance reporting on Yamuna Riverfront clearance delays", timestamp: "2026-06-17 14:02", status: "UNREAD" },
+  { id: "COM-02", sender: "District Magistrate", role: "South West Delhi", type: "Inquiry", subject: "Request for supplementary land acquisition funds for Dwarka Expressway", timestamp: "2026-06-17 11:30", status: "READ" },
+  { id: "COM-03", sender: "Disaster Management Cell", role: "Delhi Control Room", type: "Emergency", subject: "Flood warning bulletin issued for Yamuna floodplain zones", timestamp: "2026-06-17 09:12", status: "RESPONDED" },
+  { id: "COM-04", sender: "Education Department", role: "Directorate of Ed.", type: "Inquiry", subject: "School modernization project status report pending for North East Delhi", timestamp: "2026-06-17 08:45", status: "READ" },
 ];
 
 export default function CommunicationCenterPage() {
@@ -38,11 +38,18 @@ export default function CommunicationCenterPage() {
                 Recipient Authority
               </label>
               <select className="w-full bg-slate-50 border border-slate-200 text-xs rounded p-2 focus:outline-none focus:ring-1 focus:ring-gov-gold-500 text-slate-700">
-                <option>All District Collectors</option>
-                <option>Pune West (MH_201_003)</option>
-                <option>Gautam Buddha Nagar (DL_40_004)</option>
-                <option>Sikkim East (SK_2_004)</option>
-                <option>Imphal East (MN_3_005)</option>
+                <option>All District Magistrates</option>
+                <option>New Delhi (NDD_01)</option>
+                <option>South Delhi (SD_02)</option>
+                <option>Central Delhi (CD_04)</option>
+                <option>North Delhi (ND_03)</option>
+                <option>East Delhi (ED_06)</option>
+                <option>West Delhi (WD_05)</option>
+                <option>North West Delhi (NWD_08)</option>
+                <option>South West Delhi (SWD_09)</option>
+                <option>South East Delhi (SED_10)</option>
+                <option>North East Delhi (NED_07)</option>
+                <option>Shahdara (SDD_11)</option>
               </select>
             </div>
             <div>

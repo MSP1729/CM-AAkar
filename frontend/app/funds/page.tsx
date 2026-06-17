@@ -8,11 +8,11 @@ interface FundItem {
 }
 
 const FUNDS_DATA: FundItem[] = [
-  { department: "Irrigation & Water", allocated: 1250, spent: 940, utilization: 75.2 },
-  { department: "Education & Skills", allocated: 420, spent: 380, utilization: 90.5 },
-  { department: "Infrastructure Roads", allocated: 880, spent: 520, utilization: 59.1 },
-  { department: "Health & Welfare", allocated: 310, spent: 120, utilization: 38.7 },
-  { department: "Digital Governance", allocated: 150, spent: 145, utilization: 96.6 },
+  { department: "Public Works (PWD)", allocated: 1250, spent: 940, utilization: 75.2 },
+  { department: "Health & Family Welfare", allocated: 680, spent: 420, utilization: 61.8 },
+  { department: "Education", allocated: 520, spent: 450, utilization: 86.5 },
+  { department: "Transport", allocated: 920, spent: 620, utilization: 67.4 },
+  { department: "Urban Development", allocated: 780, spent: 710, utilization: 91.0 },
 ];
 
 export default function FundsPage() {
@@ -32,7 +32,7 @@ export default function FundsPage() {
             ₹{totalAllocated.toLocaleString()} Cr
           </span>
           <span className="text-[10px] text-slate-500 mt-1 block">
-            State Consolidated Fund FY 2026-27
+            Delhi Consolidated Fund FY 2026-27
           </span>
         </div>
 

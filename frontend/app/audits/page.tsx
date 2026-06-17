@@ -10,10 +10,10 @@ interface AuditRule {
 
 const AUDIT_RULES: AuditRule[] = [
   { id: "AUD-01", name: "Fund Release Signature Protocol", category: "Financial", status: "Passed", details: "All fund releases over ₹10 Cr verified with dual cryptographic hashes." },
-  { id: "AUD-02", name: "Forest Clearance SLA Check", category: "Regulatory", status: "Warning", details: "3 highway projects did not submit environmental reports before deadline." },
-  { id: "AUD-03", name: "Officer Session Verification", category: "Security", status: "Passed", details: "Biometric and IP bindings validated for all DM active logins." },
-  { id: "AUD-04", name: "Irrigation Sub-contractor Audit", category: "Financial", status: "Pending", details: "Narmada grid Phase 4 sub-contracting invoices awaiting central verification." },
-  { id: "AUD-05", name: "Digital Portal Penetration Test", category: "Security", status: "Passed", details: "Zero critical high-risk threats detected on citizen services gateway." },
+  { id: "AUD-02", name: "Dwarka Expressway EIA Compliance", category: "Regulatory", status: "Warning", details: "Contractor failed to submit revised Environmental Impact Assessment report on time." },
+  { id: "AUD-03", name: "Officer Session Verification", category: "Security", status: "Passed", details: "Biometric and IP bindings validated for all DM active logins across 11 districts." },
+  { id: "AUD-04", name: "Yamuna Riverfront Contractor Audit", category: "Financial", status: "Pending", details: "Phase 2 sub-contracting invoices for Yamuna Riverfront works awaiting central verification." },
+  { id: "AUD-05", name: "Citizen Portal Penetration Test", category: "Security", status: "Passed", details: "Zero critical high-risk threats detected on Delhi citizen services gateway." },
 ];
 
 export default function AuditsPage() {
@@ -52,10 +52,10 @@ export default function AuditsPage() {
         <div className="bg-white border border-slate-200 rounded p-5 flex items-center justify-between shadow-2xs">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Audits Executed
+                Protocols Audited
             </span>
             <span className="text-2xl font-black text-slate-800 mt-1 block">
-              41 Protocols
+               32 Protocols
             </span>
           </div>
           <div className="p-3 bg-slate-50 rounded border border-slate-200 text-slate-500">
