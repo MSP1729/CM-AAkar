@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Map, AlertCircle, CheckCircle, Info } from "lucide-react";
+import "leaflet/dist/leaflet.css";
 
 interface MapRegion {
   id: string;
@@ -10,61 +11,199 @@ interface MapRegion {
   score: number;
   status: "Optimal" | "Warning" | "Critical";
   activeProjects: number;
-  svgPath: string;
 }
-
-const RECT = (x: number, y: number, w: number, h: number) =>
-  `M ${x},${y} L ${x + w},${y} L ${x + w},${y + h} L ${x},${y + h} Z`;
 
 const REGIONS: MapRegion[] = [
   {
     id: "REG-1", name: "North West Delhi", code: "NWD_08", score: 76.2, status: "Warning", activeProjects: 91,
-    svgPath: RECT(20, 10, 110, 60),
   },
   {
     id: "REG-2", name: "North Delhi", code: "ND_03", score: 67.1, status: "Warning", activeProjects: 48,
-    svgPath: RECT(140, 10, 120, 60),
   },
   {
     id: "REG-3", name: "North East Delhi", code: "NED_07", score: 59.8, status: "Critical", activeProjects: 52,
-    svgPath: RECT(270, 10, 110, 60),
   },
   {
     id: "REG-4", name: "West Delhi", code: "WD_05", score: 73.8, status: "Warning", activeProjects: 62,
-    svgPath: RECT(20, 80, 110, 60),
   },
   {
     id: "REG-5", name: "Central Delhi", code: "CD_04", score: 84.1, status: "Optimal", activeProjects: 65,
-    svgPath: RECT(140, 80, 120, 60),
   },
   {
     id: "REG-6", name: "East Delhi", code: "ED_06", score: 79.5, status: "Warning", activeProjects: 58,
-    svgPath: RECT(270, 80, 70, 60),
   },
   {
     id: "REG-7", name: "Shahdara", code: "SDD_11", score: 63.5, status: "Warning", activeProjects: 41,
-    svgPath: RECT(345, 80, 45, 60),
   },
   {
     id: "REG-8", name: "South West Delhi", code: "SWD_09", score: 70.4, status: "Warning", activeProjects: 55,
-    svgPath: RECT(30, 150, 110, 60),
   },
   {
     id: "REG-9", name: "New Delhi", code: "NDD_01", score: 92.4, status: "Optimal", activeProjects: 84,
-    svgPath: RECT(150, 150, 100, 60),
   },
   {
     id: "REG-10", name: "South Delhi", code: "SD_02", score: 88.7, status: "Optimal", activeProjects: 72,
-    svgPath: RECT(260, 150, 100, 60),
   },
   {
     id: "REG-11", name: "South East Delhi", code: "SED_10", score: 55.2, status: "Critical", activeProjects: 38,
-    svgPath: RECT(100, 220, 190, 45),
   },
 ];
 
 export default function HeatmapPlaceholder() {
   const [selectedRegion, setSelectedRegion] = useState<MapRegion>(REGIONS[8]);
+  const [geojsonData, setGeojsonData] = useState<any>(null);
+  const [LeafletComponents, setLeafletComponents] = useState<any>(null);
+
+  useEffect(() => {
+    // Fetch processed GeoJSON from the public folder
+    fetch("/delhi_districts.geojson")
+      .then((res) => res.json())
+      .then((data) => setGeojsonData(data))
+      .catch((err) => console.error("Error loading GeoJSON:", err));
+
+    // Dynamically load Leaflet and React-Leaflet on the client side
+    const loadLeaflet = async () => {
+      try {
+        const L = await import("leaflet");
+        const ReactLeaflet = await import("react-leaflet");
+
+        // Fix Leaflet default marker icons issue
+        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+          iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+          shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        });
+
+        setLeafletComponents({
+          L,
+          MapContainer: ReactLeaflet.MapContainer,
+          TileLayer: ReactLeaflet.TileLayer,
+          GeoJSON: ReactLeaflet.GeoJSON,
+          Tooltip: ReactLeaflet.Tooltip,
+        });
+      } catch (err) {
+        console.error("Error loading Leaflet components:", err);
+      }
+    };
+
+    loadLeaflet();
+  }, []);
+
+  const getStyle = (region: MapRegion | undefined, isSelected: boolean) => {
+    if (!region) {
+      return {
+        fillColor: "#f1f5f9",
+        weight: 1,
+        color: "#cbd5e1",
+        fillOpacity: 0.6,
+      };
+    }
+
+    let fillColor = "#cbd5e1";
+    let strokeColor = "#94a3b8";
+
+    if (region.status === "Optimal") {
+      fillColor = isSelected ? "#a7f3d0" : "#ecfdf5"; // emerald-200 : emerald-50
+      strokeColor = isSelected ? "#059669" : "#10b981"; // emerald-600 : emerald-500
+    } else if (region.status === "Warning") {
+      fillColor = isSelected ? "#fde68a" : "#fffbeb"; // amber-200 : amber-50
+      strokeColor = isSelected ? "#d97706" : "#f59e0b"; // amber-600 / gold-600 : amber-500
+    } else if (region.status === "Critical") {
+      fillColor = isSelected ? "#fecaca" : "#fef2f2"; // red-200 : red-50
+      strokeColor = isSelected ? "#dc2626" : "#ef4444"; // red-600 : red-500
+    }
+
+    return {
+      fillColor: fillColor,
+      weight: isSelected ? 2.5 : 1.5,
+      color: strokeColor,
+      fillOpacity: isSelected ? 0.85 : 0.65,
+    };
+  };
+
+  const renderMap = () => {
+    if (!LeafletComponents || !geojsonData) {
+      return (
+        <div className="relative flex-1 w-full h-[350px] lg:h-[400px] mt-2 rounded-md border border-slate-200/80 bg-slate-50 flex flex-col items-center justify-center gap-3">
+          <div className="h-6 w-6 border-2 border-gov-gold-500/80 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-xs font-semibold text-slate-400 font-sans tracking-wide">
+            Loading Delhi GIS Map...
+          </span>
+        </div>
+      );
+    }
+
+    const { MapContainer, TileLayer, GeoJSON } = LeafletComponents;
+
+    return (
+      <div className="relative flex-1 w-full h-[350px] lg:h-[400px] mt-2 rounded-md overflow-hidden border border-slate-200/80 shadow-xs z-10">
+        <MapContainer
+          bounds={[[28.4, 76.8], [28.9, 77.3]]}
+          zoomSnap={0.5}
+          zoomDelta={0.5}
+          style={{ height: "100%", width: "100%" }}
+          zoomControl={true}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <GeoJSON
+            key={selectedRegion.id}
+            data={geojsonData}
+            style={(feature: any) => {
+              const districtName = feature?.properties?.district_name;
+              const region = REGIONS.find((r) => r.name.toLowerCase() === districtName?.toLowerCase());
+              return getStyle(region, selectedRegion.id === region?.id);
+            }}
+            onEachFeature={(feature: any, layer: any) => {
+              const districtName = feature?.properties?.district_name;
+              const region = REGIONS.find((r) => r.name.toLowerCase() === districtName?.toLowerCase());
+
+              if (region) {
+                // Add rich tooltip showing details
+                layer.bindTooltip(
+                  `<div class="font-sans p-1">
+                    <div class="font-bold text-slate-800 text-xs">${region.name}</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">Score: <span class="font-mono font-bold">${region.score}/100</span></div>
+                    <div class="text-[10px] text-slate-500">Status: <span class="font-bold uppercase ${
+                      region.status === 'Optimal' ? 'text-emerald-600' : region.status === 'Warning' ? 'text-gov-gold-600' : 'text-red-600'
+                    }">${region.status}</span></div>
+                   </div>`,
+                  { permanent: false, direction: 'auto', opacity: 0.95 }
+                );
+              }
+
+              layer.on({
+                mouseover: (e: any) => {
+                  const target = e.target;
+                  target.setStyle({
+                    fillOpacity: 0.85,
+                    weight: 2.5,
+                    color: region?.status === "Optimal" ? "#047857" : region?.status === "Warning" ? "#b45309" : "#b91c1c",
+                  });
+                  if (!LeafletComponents.L.Browser.ie && !LeafletComponents.L.Browser.opera && !LeafletComponents.L.Browser.edge) {
+                    target.bringToFront();
+                  }
+                },
+                mouseout: (e: any) => {
+                  const target = e.target;
+                  target.setStyle(getStyle(region, selectedRegion.id === region?.id));
+                },
+                click: () => {
+                  if (region) {
+                    setSelectedRegion(region);
+                  }
+                },
+              });
+            }}
+          />
+        </MapContainer>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white border border-slate-200 rounded shadow-xs overflow-hidden h-full flex flex-col">
@@ -87,53 +226,9 @@ export default function HeatmapPlaceholder() {
             <span className="text-gov-gold-600">Click to Select District</span>
           </div>
 
-          <div className="relative flex-1 flex items-center justify-center min-h-[200px]">
-            <svg
-              viewBox="0 0 410 290"
-              className="w-full max-w-[450px] h-auto drop-shadow-sm transition-all"
-            >
-              {REGIONS.map((region) => {
-                const isSelected = selectedRegion.id === region.id;
-                let fillColor = "fill-slate-100 stroke-slate-300";
+          {renderMap()}
 
-                if (region.status === "Optimal") {
-                  fillColor = isSelected
-                    ? "fill-emerald-100 stroke-emerald-600 stroke-2"
-                    : "fill-emerald-50/60 hover:fill-emerald-100/80 stroke-emerald-400";
-                } else if (region.status === "Warning") {
-                  fillColor = isSelected
-                    ? "fill-amber-100 stroke-gov-gold-600 stroke-2"
-                    : "fill-amber-50/60 hover:fill-amber-100/80 stroke-amber-400";
-                } else if (region.status === "Critical") {
-                  fillColor = isSelected
-                    ? "fill-red-100 stroke-red-600 stroke-2"
-                    : "fill-red-50/60 hover:fill-red-100/80 stroke-red-400";
-                }
-
-                return (
-                  <path
-                    key={region.id}
-                    d={region.svgPath}
-                    className={`cursor-pointer transition-all duration-200 ${fillColor}`}
-                    onClick={() => setSelectedRegion(region)}
-                  />
-                );
-              })}
-              <text x="75" y="47" textAnchor="middle" className="text-[9px] font-bold fill-amber-700 font-mono pointer-events-none">NWD</text>
-              <text x="200" y="47" textAnchor="middle" className="text-[9px] font-bold fill-amber-700 font-mono pointer-events-none">ND</text>
-              <text x="325" y="47" textAnchor="middle" className="text-[9px] font-bold fill-red-700 font-mono pointer-events-none">NED</text>
-              <text x="75" y="117" textAnchor="middle" className="text-[9px] font-bold fill-amber-700 font-mono pointer-events-none">WD</text>
-              <text x="200" y="117" textAnchor="middle" className="text-[9px] font-bold fill-emerald-700 font-mono pointer-events-none">CD</text>
-              <text x="305" y="117" textAnchor="middle" className="text-[9px] font-bold fill-amber-700 font-mono pointer-events-none">ED</text>
-              <text x="367" y="117" textAnchor="middle" className="text-[8px] font-bold fill-amber-700 font-mono pointer-events-none">SDD</text>
-              <text x="85" y="187" textAnchor="middle" className="text-[9px] font-bold fill-amber-700 font-mono pointer-events-none">SWD</text>
-              <text x="200" y="187" textAnchor="middle" className="text-[9px] font-bold fill-emerald-700 font-mono pointer-events-none">NDD</text>
-              <text x="310" y="187" textAnchor="middle" className="text-[9px] font-bold fill-emerald-700 font-mono pointer-events-none">SD</text>
-              <text x="195" y="247" textAnchor="middle" className="text-[9px] font-bold fill-red-700 font-mono pointer-events-none">SED</text>
-            </svg>
-          </div>
-
-          <div className="flex gap-4 border-t border-slate-100 pt-3 mt-2 text-[10px] font-bold text-slate-400 justify-center">
+          <div className="flex gap-4 border-t border-slate-100 pt-3 mt-4 text-[10px] font-bold text-slate-400 justify-center">
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-xs bg-emerald-100 border border-emerald-400"></span>
               <span>Optimal (&gt;80)</span>
@@ -232,6 +327,35 @@ export default function HeatmapPlaceholder() {
           </div>
         </div>
       </div>
+
+      <style>{`
+        .leaflet-container {
+          background-color: #f8fafc !important;
+          font-family: inherit;
+        }
+        .leaflet-tooltip {
+          background-color: #ffffff !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 4px !important;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+        }
+        .leaflet-tooltip-pane {
+          z-index: 650 !important;
+        }
+        .leaflet-control-zoom {
+          border: 1px solid #cbd5e1 !important;
+          box-shadow: none !important;
+        }
+        .leaflet-control-zoom a {
+          background-color: #ffffff !important;
+          color: #475569 !important;
+          border-bottom: 1px solid #cbd5e1 !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background-color: #f1f5f9 !important;
+          color: #1e293b !important;
+        }
+      `}</style>
     </div>
   );
 }
